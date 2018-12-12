@@ -1,3 +1,4 @@
+
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
@@ -15,6 +16,27 @@
 (require 'bind-key)
 
 (global-linum-mode 1)
+
+(use-package org
+  :hook (org-mode . visual-line-mode)
+  :bind (("C-c l" . org-store-link)
+	 ("C-c a" . org-agenda)
+	 ("C-c c" . org-capture)
+	 ("C-c b" . org-switchb))
+  :config (org-babel-do-load-languages
+	   'org-babel-load-languages
+	   '((sh         . t)
+	     (js         . t)
+	     (emacs-lisp . t)
+	     (perl       . t)
+	     (scala      . t)
+	     (clojure    . t)
+	     (python     . t)
+	     (ruby       . t)
+	     (dot        . t)
+	     (css        . t)
+	     (plantuml   . t))))
+
 
 (use-package darcula-theme
   :ensure t)
@@ -68,3 +90,13 @@
 
 (use-package transpose-frame
   :ensure t)
+(use-package nginx-mode
+  :ensure t)
+(use-package exec-path-from-shell
+  :ensure t
+  :if (memq window-system '(mac ns))
+  :config (exec-path-from-shell-initialize))
+
+(use-package pipenv
+  :ensure t
+  :hook (python-mode . pipenv-mode))
