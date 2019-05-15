@@ -17,6 +17,9 @@
 
 (global-linum-mode 1)
 
+(use-package company
+  :ensure t)
+
 (use-package org
   :hook (org-mode . visual-line-mode)
   :bind (("C-c l" . org-store-link)
@@ -100,3 +103,54 @@
 (use-package pipenv
   :ensure t
   :hook (python-mode . pipenv-mode))
+
+(use-package cider
+  :ensure t
+  :hook
+  (cider-repl-mode . company-mode)
+  (cider-mode . company-mode))
+(use-package paredit
+  :ensure t)
+
+(use-package clojure-mode
+  :ensure t
+  :config (setq clojure-align-forms-automatically t)
+  (show-paren-mode 1))
+
+(use-package aggressive-indent
+  :ensure t
+  :hook (clojure-mode . aggressive-indent-mode))
+
+(use-package clojure-mode-extra-font-locking
+  :ensure t)
+
+(use-package rainbow-delimiters
+  :ensure t)
+(load-file "~/.emacs.d/clojure.el")
+
+
+(use-package multiple-cursors
+  :ensure t)
+
+(use-package restclient
+  :ensure t
+  :mode ("\\.http\\'" . restclient-mode))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ '(package-selected-packages
+   (quote
+    (sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme)))
+ '(safe-local-variable-values
+   (quote
+    ((cider-clojure-cli-global-options . "-A:server")
+     (cider-repl-require-ns-on-set . t)))))
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
