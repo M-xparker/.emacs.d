@@ -1,4 +1,3 @@
-
 (require 'package)
 (setq package-enable-at-startup nil)
 (add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
@@ -16,6 +15,7 @@
 (require 'bind-key)
 
 (global-linum-mode 1)
+(defalias 'yes-or-no-p 'y-or-n-p)
 
 (use-package company
   :ensure t)
@@ -43,18 +43,6 @@
 
 (use-package darcula-theme
   :ensure t)
-
-
-(use-package go-mode
-  :ensure t
-  :init
-  (setq exec-path (cons "/usr/local/go/bin" exec-path))
-  (add-to-list 'exec-path "/Users/matthewparker/go/bin")
-  (setq gofmt-command "goimports")
-  (add-hook 'before-save-hook 'gofmt-before-save)
-  :bind
-  ("M-." . godef-jump))
-
 
 (use-package ido-ubiquitous
   :ensure t
@@ -104,6 +92,32 @@
   :ensure t
   :hook (python-mode . pipenv-mode))
 
+(use-package multiple-cursors
+  :ensure t)
+
+(use-package restclient
+  :ensure t
+  :mode ("\\.http\\'" . restclient-mode))
+
+(use-package whitespace-mode
+  :hook ((clojure-mode . whitespace-mode)
+	 (markdown-mode . whitespace-mode))
+  :init
+  (setq
+   whitespace-style '(face lines-tail)
+   whitespace-line-column 80))
+
+(use-package auto-fill-mode
+  :hook (org-mode . auto-fill-mode)
+  :init
+  (setq-default fill-column 80))
+
+(use-package julia-mode
+  :ensure t)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; Clojure
+;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package cider
   :ensure t
   :hook
@@ -115,7 +129,7 @@
 (use-package clojure-mode
   :ensure t
   :config (setq clojure-align-forms-automatically t)
-  (show-paren-mode 1))
+	   (show-paren-mode 1))
 
 (use-package aggressive-indent
   :ensure t
@@ -126,6 +140,7 @@
 
 (use-package rainbow-delimiters
   :ensure t)
+
 (load-file "~/.emacs.d/clojure.el")
 
 
@@ -136,6 +151,9 @@
   :ensure t
   :mode ("\\.http\\'" . restclient-mode))
 
+;;;;;;;;;;;;;;;;;;;;;;
+;; Emacs Generated
+;;;;;;;;;;;;;;;;;;;;;;
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
