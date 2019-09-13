@@ -15,6 +15,7 @@
 (require 'bind-key)
 
 (global-linum-mode 1)
+(setq ns-right-command-modifier 'control)
 (defalias 'yes-or-no-p 'y-or-n-p)
 
 (use-package company
