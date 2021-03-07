@@ -1,23 +1,34 @@
 (require 'package)
 (setq package-enable-at-startup nil)
-(add-to-list 'package-archives '("melpa" . "http://melpa.org/packages/"))
-(add-to-list 'package-archives '("marmalade" . "http://marmalade-repo.org/packages/"))
-(add-to-list 'package-archives '("gnu" . "http://elpa.gnu.org/packages/"))
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
 (package-initialize)
 
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
 
 (eval-when-compile
   (require 'use-package))
 (require 'diminish)
 (require 'bind-key)
 
+(add-to-list 'load-path "~/.emacs.d/nano-emacs")
+
+;; Welcome message
+(let ((inhibit-message t))
+  (message "Welcome to GNU Emacs / N Λ N O edition")
+  (message (format "Initialization time: %s" (emacs-init-time))))
+
+(require 'nano-layout)
+(require 'nano-theme-dark)
+(require 'nano-modeline)
+(provide 'nano)
+
 (global-linum-mode 1)
 (setq ns-right-command-modifier 'control)
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq dired-omit-files "^\\.$|~$")
+
+(use-package darcula-theme
+  :ensure t)
 
 (use-package company
   :ensure t)
@@ -30,8 +41,7 @@
 	 ("C-c b" . org-switchb))
   :config (org-babel-do-load-languages
 	   'org-babel-load-languages
-	   '((shell      . t)
-	     (js         . t)
+	   '((js         . t)
 	     (emacs-lisp . t)
 	     (clojure    . t)
 	     (python     . t)
@@ -72,6 +82,7 @@
           (insert description)))))
 
 (use-package org-roam
+  :ensure t
       :hook
       (after-init . org-roam-mode)
       :custom
@@ -127,10 +138,11 @@
 (use-package swiper
   :ensure t)
 
-(use-package ido-ubiquitous
+(use-package ido-completing-read+
   :ensure t
   :init
   (ido-mode t)
+  (ido-everywhere t)
   (setq ido-enable-flex-matching t)
   (setq ido-auto-merge-work-directories-length -1)
   (setq ido-use-virtual-buffers t)
@@ -198,11 +210,80 @@
 (use-package julia-mode
   :ensure t)
 
+(use-package which-key
+  :ensure t
+    :config
+    (which-key-mode))
+
+(use-package lsp-mode
+  :ensure t
+  :hook (lsp-mode . lsp-enable-which-key-integration)
+  :config (setq lsp-ui-doc-enable nil)
+  :commands lsp)
+
+(use-package lsp-ui
+  :ensure t)
+
+(defun indent-buffer ()
+      (interactive)
+      (save-excursion
+        (indent-region (point-min) (point-max) nil)))
+
+(use-package projectile
+  :ensure t
+  :init
+  (projectile-mode +1)
+  :config
+  (setq projectile-project-search-path '("~/Desktop/paradigm/"))
+  (add-to-list 'projectile-globally-ignored-directories "node_modules")
+  :bind (:map projectile-mode-map
+              ("s-p" . projectile-command-map)
+              ("C-c p" . projectile-command-map)))
+
+(defun kill-project-buffers ()
+  ""
+  (interactive)
+  (let ((bufs (buffer-list (selected-frame))))
+    (dolist (buf bufs)
+      (with-current-buffer buf
+	(when (projectile-project-p)
+	  (kill-buffer buf))))))
+
+
+;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#fceade")
+
+(defun js-font-setup ()
+  (face-remap-add-relative 'font-lock-variable-name-face
+			   :foreground "#1481ba")
+  ;; "#ffa400"
+  (face-remap-add-relative 'font-lock-function-name-face
+			   :foreground "#23ce6b"))
+(defun disable-tabs () (setq indent-tabs-mode nil))
+
+(use-package js
+  :config
+  (setq js-indent-level 2)
+  (setq js-chain-indent nil)
+  :hook ((js-mode . lsp)
+	 (js-mode . lsp-ui-mode)
+	 (js-mode . disable-tabs)
+	 (js-mode . js-font-setup)))
+
+(use-package typescript-mode
+  :config
+  (setq typescript-indent-level 2)
+  (setq js-chain-indent nil)
+  :hook ((typescript-mode . lsp)
+	 (typescript-mode . lsp-ui-mode)
+	 (typescript-mode . disable-tabs)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package cider
   :ensure t
+  :bind (("C-c C-o" . (lambda () (interactive)
+			       (cider-find-and-clear-repl-output t))))
   :hook
   (cider-repl-mode . company-mode)
   (cider-mode . company-mode))
@@ -227,13 +308,6 @@
 (load-file "~/.emacs.d/clojure.el")
 
 
-(use-package multiple-cursors
-  :ensure t)
-
-(use-package restclient
-  :ensure t
-  :mode ("\\.http\\'" . restclient-mode))
-
 ;;;;;;;;;;;;;;;;;;;;;;
 ;; Emacs Generated
 ;;;;;;;;;;;;;;;;;;;;;;
@@ -242,20 +316,62 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-enabled-themes nil)
+ '(custom-safe-themes
+   (quote
+    ("6f59df85468a454049cbfd90848d36a2da8d60aa29e8f9cc1c239d52cdac7ab7" "41c8c11f649ba2832347fe16fe85cf66dafe5213ff4d659182e25378f9cfc183" default)))
+ '(ensime-sem-high-faces
+   (quote
+    ((var :foreground "#9876aa" :underline
+	  (:style wave :color "yellow"))
+     (val :foreground "#9876aa")
+     (varField :slant italic)
+     (valField :foreground "#9876aa" :slant italic)
+     (functionCall :foreground "#a9b7c6")
+     (implicitConversion :underline
+			 (:color "#808080"))
+     (implicitParams :underline
+		     (:color "#808080"))
+     (operator :foreground "#cc7832")
+     (param :foreground "#a9b7c6")
+     (class :foreground "#4e807d")
+     (trait :foreground "#4e807d" :slant italic)
+     (object :foreground "#6897bb" :slant italic)
+     (package :foreground "#cc7832")
+     (deprecated :strike-through "#a9b7c6"))))
+ '(nil nil t)
+ '(org-roam-capture-templates
+   (quote
+    (("d" "default" plain
+      (function org-roam-capture--get-point)
+      "%?" :file-name "permanent/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
+" :unnarrowed t)
+     ("p" "project" plain
+      (function org-roam-capture--get-point)
+      "%?" :file-name "project/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
+" :unnarrowed t)
+     ("r" "ref" plain
+      (function org-roam-capture--get-point)
+      "" :file-name "literature/${slug}" :head "#+TITLE: ${title}
+#+ROAM_KEY: ${ref}
+" :unnarrowed t))) t)
+ '(org-roam-completion-system (quote ivy) t)
+ '(org-roam-dailies-capture-templates
+   (quote
+    (("d" "daily" plain
+      (function org-roam-capture--get-point)
+      "" :immediate-finish t :file-name "daily/%<%Y-%m-%d>" :head "#+TITLE: %<%Y-%m-%d>"))) t)
+ '(org-roam-directory "~/Desktop/roam" t)
  '(package-selected-packages
    (quote
-    (swiper deft org-roam sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme)))
- '(safe-local-variable-values
-   (quote
-    ((cider-preferred-build-tool . clojure-cli)
-     (cider-clojure-cli-global-options . "-A:server:dev")
-     (cider-known-endpoints
-      ("client" "localhost" "9000"))
-     (cider-clojure-cli-global-options . "-A:server")
-     (cider-repl-require-ns-on-set . t)))))
+    (lsp-mode which-key org-roam quote
+	      (swiper deft org-roam typescript-mode counsel-jq ido-completing-read+ projectile which-key lsp-ui js-mode jetbrains-darcula-theme lsp-mode json-navigator markdown-mode sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme)))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(font-lock-type-face ((t (:inherit nano-face-salient :foreground "#9CCC65"))))
+ '(org-level-1 ((t (:inherit outline-1))))
+ '(org-level-2 ((t (:inherit outline-3))))
+ '(org-level-3 ((t (:inherit outline-2)))))
