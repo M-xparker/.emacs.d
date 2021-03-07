@@ -1,9 +1,6 @@
-(require 'package)
-(setq package-enable-at-startup nil)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
-
+(unless (package-installed-p 'use-package)
+  (package-refresh-contents)
+  (package-install 'use-package))
 
 (eval-when-compile
   (require 'use-package))
@@ -318,11 +315,9 @@
  ;; If there is more than one, they won't work right.
  '(custom-enabled-themes nil)
  '(custom-safe-themes
-   (quote
-    ("6f59df85468a454049cbfd90848d36a2da8d60aa29e8f9cc1c239d52cdac7ab7" "41c8c11f649ba2832347fe16fe85cf66dafe5213ff4d659182e25378f9cfc183" default)))
+   '("6f59df85468a454049cbfd90848d36a2da8d60aa29e8f9cc1c239d52cdac7ab7" "41c8c11f649ba2832347fe16fe85cf66dafe5213ff4d659182e25378f9cfc183" default))
  '(ensime-sem-high-faces
-   (quote
-    ((var :foreground "#9876aa" :underline
+   '((var :foreground "#9876aa" :underline
 	  (:style wave :color "yellow"))
      (val :foreground "#9876aa")
      (varField :slant italic)
@@ -338,34 +333,23 @@
      (trait :foreground "#4e807d" :slant italic)
      (object :foreground "#6897bb" :slant italic)
      (package :foreground "#cc7832")
-     (deprecated :strike-through "#a9b7c6"))))
+     (deprecated :strike-through "#a9b7c6")))
  '(nil nil t)
  '(org-roam-capture-templates
-   (quote
-    (("d" "default" plain
-      (function org-roam-capture--get-point)
-      "%?" :file-name "permanent/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
+   '(("d" "default" plain #'org-roam-capture--get-point "%?" :file-name "permanent/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
 " :unnarrowed t)
-     ("p" "project" plain
-      (function org-roam-capture--get-point)
-      "%?" :file-name "project/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
+     ("p" "project" plain #'org-roam-capture--get-point "%?" :file-name "project/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
 " :unnarrowed t)
-     ("r" "ref" plain
-      (function org-roam-capture--get-point)
-      "" :file-name "literature/${slug}" :head "#+TITLE: ${title}
+     ("r" "ref" plain #'org-roam-capture--get-point "" :file-name "literature/${slug}" :head "#+TITLE: ${title}
 #+ROAM_KEY: ${ref}
-" :unnarrowed t))) t)
- '(org-roam-completion-system (quote ivy) t)
+" :unnarrowed t)) t)
+ '(org-roam-completion-system 'ivy t)
  '(org-roam-dailies-capture-templates
-   (quote
-    (("d" "daily" plain
-      (function org-roam-capture--get-point)
-      "" :immediate-finish t :file-name "daily/%<%Y-%m-%d>" :head "#+TITLE: %<%Y-%m-%d>"))) t)
+   '(("d" "daily" plain #'org-roam-capture--get-point "" :immediate-finish t :file-name "daily/%<%Y-%m-%d>" :head "#+TITLE: %<%Y-%m-%d>")) t)
  '(org-roam-directory "~/Desktop/roam" t)
  '(package-selected-packages
-   (quote
-    (lsp-mode which-key org-roam quote
-	      (swiper deft org-roam typescript-mode counsel-jq ido-completing-read+ projectile which-key lsp-ui js-mode jetbrains-darcula-theme lsp-mode json-navigator markdown-mode sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme)))))
+   '(org-roam quote
+	      (swiper deft org-roam typescript-mode counsel-jq ido-completing-read+ projectile which-key lsp-ui js-mode jetbrains-darcula-theme lsp-mode json-navigator markdown-mode sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
