@@ -1,6 +1,20 @@
-(unless (package-installed-p 'use-package)
-  (package-refresh-contents)
-  (package-install 'use-package))
+(require 'package)
+(setq package-enable-at-startup nil)
+(add-to-list 'package-archives
+             '("melpa" . "https://melpa.org/packages/") t)
+(package-initialize)
+
+(defun any-horizontal-splits-p ()
+  "Return t if any windows have been split horizontally."
+  (when (member nil (mapcar #'window-full-width-p (window-list))) t))
+
+(defun resize-font (frame)
+  (if (any-horizontal-splits-p)
+      (set-face-attribute 'default nil :height 120)
+    (set-face-attribute 'default nil :height 140)))
+
+(add-hook 'window-buffer-change-functions
+	  'resize-font)
 
 (eval-when-compile
   (require 'use-package))
@@ -432,6 +446,7 @@ statement spanning multiple lines; otherwise, return nil."
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(font-lock-type-face ((t (:inherit nano-face-salient :foreground "#9CCC65"))))
+ '(org-document-title ((t (:inherit nano-face-faded :foreground "LightSkyBlue1"))))
  '(org-level-1 ((t (:inherit outline-1))))
  '(org-level-2 ((t (:inherit outline-3))))
  '(org-level-3 ((t (:inherit outline-2)))))
