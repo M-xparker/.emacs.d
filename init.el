@@ -24,10 +24,47 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq dired-omit-files "^\\.$|~$")
 
+(setq mac-right-command-modifier 'control)
+
+(require 'subr-x)
+
+(defun insert-random-uuid ()
+  (interactive)
+  (insert (downcase (string-trim (shell-command-to-string "uuidgen")))))
+
+(defun unfill-region (beg end)
+  "Unfill the region, joining text paragraphs into a single
+    logical line.  This is useful, e.g., for use with
+    `visual-line-mode'."
+  (interactive "*r")
+  (let ((fill-column (point-max)))
+    (fill-region beg end)))
+
+(defun copy-paragraph ()
+  "Copy the current paragraph to clipboard."
+  (interactive)
+  (let ((start (save-excursion
+		 (backward-paragraph)
+		 (point)))
+	(end (save-excursion
+	       (forward-paragraph)
+	       (point))))
+    (clipboard-kill-ring-save start end)))
+
+
 (use-package darcula-theme
   :ensure t)
 
+(use-package tree-sitter
+  :ensure t)
+(use-package tree-sitter-langs
+  :ensure t
+  :config (tree-sitter-require 'javascript))
+
 (use-package company
+  :ensure t)
+
+(use-package counsel
   :ensure t)
 
 (use-package org
@@ -45,6 +82,7 @@
 	     (dot        . t)
 	     (css        . t)
 	     (calc . t)))
+  (setq org-startup-folded t)
   (setq org-agenda-files '("~/gtd/inbox.org"
                          "~/gtd/gtd.org"
                          "~/gtd/tickler.org"))
@@ -63,7 +101,8 @@
          ((org-agenda-overriding-header "Admin")))))
   (setq org-deadline-warning-days 30)
   (add-to-list 'org-modules 'org-habit)
-  (setq org-load-modules-maybe t))
+  (setq org-load-modules-maybe t)
+  (setq org-adapt-indentation nil))
 
 (defun org-replace-link-by-link-description ()
     "Replace an org link by its description or if empty its address"
@@ -102,15 +141,9 @@
 	  :head "#+TITLE: ${title}
 #+ROAM_KEY: ${ref}\n"
 	  :unnarrowed t)))
-      (org-roam-dailies-capture-templates
-       '(("d" "daily" plain (function org-roam-capture--get-point)
-	  ""
-	  :immediate-finish t
-	  :file-name "daily/%<%Y-%m-%d>"
-	  :head "#+TITLE: %<%Y-%m-%d>")))
       :bind (:map org-roam-mode-map
 		  (("C-c n l" . org-roam)
-		   ("C-c n t" . org-roam-dailies-today)
+		   ("C-c n t" . org-roam-dailies-find-today)
 		   ("C-c n f" . org-roam-find-file)
 		   ("C-c n j" . org-roam-jump-to-index)
 		   ("C-c n b" . org-roam-switch-to-buffer)
@@ -260,7 +293,8 @@
 (use-package js
   :config
   (setq js-indent-level 2)
-  (setq js-chain-indent nil)
+  (setq js-switch-indent-offset 2)
+  (setq js-chain-indent 't)
   :hook ((js-mode . lsp)
 	 (js-mode . lsp-ui-mode)
 	 (js-mode . disable-tabs)
@@ -273,6 +307,41 @@
   :hook ((typescript-mode . lsp)
 	 (typescript-mode . lsp-ui-mode)
 	 (typescript-mode . disable-tabs)))
+
+(defun js--multi-line-declaration-indentation ()
+  "Helper function for `js--proper-indentation'.
+Return the proper indentation of the current line if it belongs to a declaration
+statement spanning multiple lines; otherwise, return nil."
+  (let (forward-sexp-function ; Use Lisp version.
+        at-opening-bracket)
+    (save-excursion
+      (back-to-indentation)
+      (when (not (looking-at js--declaration-keyword-re))
+        (let ((pt (point)))
+          (when (looking-at js--indent-operator-re)
+            (goto-char (match-end 0)))
+          ;; The "operator" is probably a regexp literal opener.
+          (when (nth 3 (syntax-ppss))
+            (goto-char pt)))
+        (while (and (not at-opening-bracket)
+                    (not (bobp))
+                    (let ((pos (point)))
+                      (save-excursion
+                        (js--backward-syntactic-ws)
+                        (or (eq (char-before) ?,)
+                            (and (not (eq (char-before) ?\;))
+                                 (prog2
+                                     (skip-syntax-backward ".")
+                                     (looking-at js--indent-operator-re)
+                                   (js--backward-syntactic-ws))
+                                 (not (eq (char-before) ?\;)))
+                            (js--same-line pos)))))
+          (condition-case nil
+              (backward-sexp)
+            (scan-error (setq at-opening-bracket t))))
+        (when (looking-at js--declaration-keyword-re)
+          (goto-char (match-beginning 0))
+          (+ js-indent-level (current-column)))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure
@@ -303,6 +372,13 @@
   :ensure t)
 
 (load-file "~/.emacs.d/clojure.el")
+
+(use-package sqlformat
+  :commands (sqlformat sqlformat-buffer sqlformat-region)
+  :hook (sql-mode . sqlformat-on-save-mode)
+  :init
+  (setq sqlformat-command 'pgformatter
+        sqlformat-args '("-s2" "-g" "-u2")))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;
