@@ -1,8 +1,14 @@
-(require 'package)
-(setq package-enable-at-startup nil)
-(add-to-list 'package-archives
-             '("melpa" . "https://melpa.org/packages/") t)
-(package-initialize)
+(setq inhibit-startup-message t)
+
+(scroll-bar-mode -1)        ; Disable visible scrollbar
+(tool-bar-mode -1)          ; Disable the toolbar
+(tooltip-mode -1)           ; Disable tooltips
+(set-fringe-mode 10)        ; Give some breathing room
+(menu-bar-mode -1)            ; Disable the menu bar
+
+(set-face-attribute 'default nil :font "Fira Code" :height 140)
+(column-number-mode)
+(global-display-line-numbers-mode t)
 
 (defun any-horizontal-splits-p ()
   "Return t if any windows have been split horizontally."
@@ -16,70 +22,94 @@
 (add-hook 'window-buffer-change-functions
 	  'resize-font)
 
-(eval-when-compile
-  (require 'use-package))
-(require 'diminish)
-(require 'bind-key)
-
-(add-to-list 'load-path "~/.emacs.d/nano-emacs")
-
-;; Welcome message
-(let ((inhibit-message t))
-  (message "Welcome to GNU Emacs / N Λ N O edition")
-  (message (format "Initialization time: %s" (emacs-init-time))))
-
-(require 'nano-layout)
-(require 'nano-theme-dark)
-(require 'nano-modeline)
-(provide 'nano)
-
-(global-linum-mode 1)
-(setq ns-right-command-modifier 'control)
-(defalias 'yes-or-no-p 'y-or-n-p)
-(setq dired-omit-files "^\\.$|~$")
-
+;; Keyboard changes
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 (setq mac-right-command-modifier 'control)
+(setq ns-right-command-modifier 'control)
+
+;; Initialize package sources
+(require 'package)
+
+(setq package-archives '(("melpa" . "http://melpa.org/packages/")
+                         ("org" . "https://orgmode.org/elpa/")
+                         ("elpa" . "https://elpa.gnu.org/packages/")))
+
+(package-initialize)
+(unless package-archive-contents
+ (package-refresh-contents))
+
+(unless (package-installed-p 'use-package)
+  (package-install 'use-package))
+(require 'use-package)
+(setq use-package-always-ensure t)
 
 (require 'subr-x)
 
-(defun insert-random-uuid ()
-  (interactive)
-  (insert (downcase (string-trim (shell-command-to-string "uuidgen")))))
+(load "~/.emacs.d/utils.el")
 
-(defun unfill-region (beg end)
-  "Unfill the region, joining text paragraphs into a single
-    logical line.  This is useful, e.g., for use with
-    `visual-line-mode'."
-  (interactive "*r")
-  (let ((fill-column (point-max)))
-    (fill-region beg end)))
+(defalias 'yes-or-no-p 'y-or-n-p)
+(setq dired-omit-files "^\\.$|~$")
 
-(defun copy-paragraph ()
-  "Copy the current paragraph to clipboard."
-  (interactive)
-  (let ((start (save-excursion
-		 (backward-paragraph)
-		 (point)))
-	(end (save-excursion
-	       (forward-paragraph)
-	       (point))))
-    (clipboard-kill-ring-save start end)))
+(use-package doom-themes
+  :init (load-theme 'doom-one t)
+  :config
+  (setq doom-themes-enable-bold t    
+        doom-themes-enable-italic t)
+  (doom-themes-org-config))
 
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom ((doom-modeline-height 15)))
 
-(use-package darcula-theme
-  :ensure t)
-
-(use-package tree-sitter
-  :ensure t)
+(use-package tree-sitter)
 (use-package tree-sitter-langs
-  :ensure t
   :config (tree-sitter-require 'javascript))
 
-(use-package company
-  :ensure t)
+(use-package company)
+
+(use-package ivy
+  :diminish
+  :bind (("C-s" . swiper)
+         :map ivy-minibuffer-map
+         ("TAB" . ivy-alt-done)
+         ("C-l" . ivy-alt-done)
+         ("C-j" . ivy-next-line)
+         ("C-k" . ivy-previous-line)
+         :map ivy-switch-buffer-map
+         ("C-k" . ivy-previous-line)
+         ("C-l" . ivy-done)
+         ("C-d" . ivy-switch-buffer-kill)
+         :map ivy-reverse-i-search-map
+         ("C-k" . ivy-previous-line)
+         ("C-d" . ivy-reverse-i-search-kill))
+  :config
+  (ivy-mode 1))
+(use-package ivy-rich
+  :init
+  (ivy-rich-mode 1))
 
 (use-package counsel
-  :ensure t)
+  :bind (("M-x" . counsel-M-x)
+         ("C-x b" . counsel-ibuffer)
+         ("C-x C-f" . counsel-find-file)
+         :map minibuffer-local-map
+         ("C-r" . 'counsel-minibuffer-history)))
+
+(use-package helpful
+  :custom
+  (counsel-describe-function-function #'helpful-callable)
+  (counsel-describe-variable-function #'helpful-variable)
+  :bind
+  ([remap describe-function] . counsel-describe-function)
+  ([remap describe-command] . helpful-command)
+  ([remap describe-variable] . counsel-describe-variable)
+  ([remap describe-key] . helpful-key))
+
+(use-package hydra)
+(defhydra hydra-zoom (global-map "<f2>")
+  "zoom"
+  ("j" text-scale-increase "in")
+  ("k" text-scale-decrease "out"))
 
 (use-package org
   :hook (org-mode . visual-line-mode)
@@ -132,7 +162,6 @@
           (insert description)))))
 
 (use-package org-roam
-  :ensure t
       :hook
       (after-init . org-roam-mode)
       :custom
@@ -158,6 +187,7 @@
       :bind (:map org-roam-mode-map
 		  (("C-c n l" . org-roam)
 		   ("C-c n t" . org-roam-dailies-find-today)
+		   ("C-c n y" . org-roam-dailies-find-yesterday)
 		   ("C-c n f" . org-roam-find-file)
 		   ("C-c n j" . org-roam-jump-to-index)
 		   ("C-c n b" . org-roam-switch-to-buffer)
@@ -175,70 +205,27 @@
   (deft-default-extension "org")
   (deft-directory "~/Desktop/roam"))
 
-
-(use-package darcula-theme
-  :ensure t)
-
-(use-package swiper
-  :ensure t)
-
-(use-package ido-completing-read+
-  :ensure t
-  :init
-  (ido-mode t)
-  (ido-everywhere t)
-  (setq ido-enable-flex-matching t)
-  (setq ido-auto-merge-work-directories-length -1)
-  (setq ido-use-virtual-buffers t)
-  (ido-ubiquitous-mode 1)
-  :bind
-  ("C-x C-b" . ibuffer))
-
-(use-package smex
-  :ensure t
-  :bind
-  ("M-x" . smex))
-
-(use-package elpy
-  :ensure t
-  :init
-  (setq elpy-rpc-python-command "python3")
-  :config
-  (elpy-enable))
-
-(use-package neotree
-  :ensure t)
+(use-package neotree)
 
 ;;something's not working with this
 ;;install manually
-(use-package dash
-  :ensure t)
+(use-package dash)
 
 (use-package magit
-  :ensure t
   :bind ("C-x g" . magit-status))
 
-(use-package transpose-frame
-  :ensure t)
-(use-package nginx-mode
-  :ensure t)
+(use-package transpose-frame)
 (use-package exec-path-from-shell
-  :ensure t
   :if (memq window-system '(mac ns))
   :config (exec-path-from-shell-initialize))
 
-(use-package pipenv
-  :ensure t
-  :hook (python-mode . pipenv-mode))
-
-(use-package multiple-cursors
-  :ensure t)
+(use-package multiple-cursors)
 
 (use-package restclient
-  :ensure t
   :mode ("\\.http\\'" . restclient-mode))
 
 (use-package whitespace-mode
+  :ensure nil
   :hook ((clojure-mode . whitespace-mode)
 	 (markdown-mode . whitespace-mode))
   :init
@@ -247,34 +234,22 @@
    whitespace-line-column 80))
 
 (use-package auto-fill-mode
+  :ensure nil
   :hook (org-mode . auto-fill-mode)
   :init
   (setq-default fill-column 80))
 
-(use-package julia-mode
-  :ensure t)
-
 (use-package which-key
-  :ensure t
     :config
     (which-key-mode))
 
 (use-package lsp-mode
-  :ensure t
   :hook (lsp-mode . lsp-enable-which-key-integration)
   :config (setq lsp-ui-doc-enable nil)
   :commands lsp)
 
-(use-package lsp-ui
-  :ensure t)
-
-(defun indent-buffer ()
-      (interactive)
-      (save-excursion
-        (indent-region (point-min) (point-max) nil)))
-
+(use-package lsp-ui)
 (use-package projectile
-  :ensure t
   :init
   (projectile-mode +1)
   :config
@@ -292,9 +267,6 @@
       (with-current-buffer buf
 	(when (projectile-project-p)
 	  (kill-buffer buf))))))
-
-
-;; (set-face-attribute 'font-lock-keyword-face nil :foreground "#fceade")
 
 (defun js-font-setup ()
   (face-remap-add-relative 'font-lock-variable-name-face
@@ -361,29 +333,26 @@ statement spanning multiple lines; otherwise, return nil."
 ;; Clojure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package cider
-  :ensure t
+  
   :bind (("C-c C-o" . (lambda () (interactive)
 			       (cider-find-and-clear-repl-output t))))
   :hook
   (cider-repl-mode . company-mode)
   (cider-mode . company-mode))
-(use-package paredit
-  :ensure t)
+(use-package paredit)
 
 (use-package clojure-mode
-  :ensure t
+  
   :config (setq clojure-align-forms-automatically t)
 	   (show-paren-mode 1))
 
 (use-package aggressive-indent
-  :ensure t
-  :hook (clojure-mode . aggressive-indent-mode))
+  :hook ((clojure-mode . aggressive-indent-mode)
+	 (js-mode . aggresive-indent-mode)))
 
-(use-package clojure-mode-extra-font-locking
-  :ensure t)
+(use-package clojure-mode-extra-font-locking)
 
-(use-package rainbow-delimiters
-  :ensure t)
+(use-package rainbow-delimiters)
 
 (load-file "~/.emacs.d/clojure.el")
 
@@ -394,59 +363,5 @@ statement spanning multiple lines; otherwise, return nil."
   (setq sqlformat-command 'pgformatter
         sqlformat-args '("-s2" "-g" "-u2")))
 
-
-;;;;;;;;;;;;;;;;;;;;;;
-;; Emacs Generated
-;;;;;;;;;;;;;;;;;;;;;;
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-enabled-themes nil)
- '(custom-safe-themes
-   '("6f59df85468a454049cbfd90848d36a2da8d60aa29e8f9cc1c239d52cdac7ab7" "41c8c11f649ba2832347fe16fe85cf66dafe5213ff4d659182e25378f9cfc183" default))
- '(ensime-sem-high-faces
-   '((var :foreground "#9876aa" :underline
-	  (:style wave :color "yellow"))
-     (val :foreground "#9876aa")
-     (varField :slant italic)
-     (valField :foreground "#9876aa" :slant italic)
-     (functionCall :foreground "#a9b7c6")
-     (implicitConversion :underline
-			 (:color "#808080"))
-     (implicitParams :underline
-		     (:color "#808080"))
-     (operator :foreground "#cc7832")
-     (param :foreground "#a9b7c6")
-     (class :foreground "#4e807d")
-     (trait :foreground "#4e807d" :slant italic)
-     (object :foreground "#6897bb" :slant italic)
-     (package :foreground "#cc7832")
-     (deprecated :strike-through "#a9b7c6")))
- '(nil nil t)
- '(org-roam-capture-templates
-   '(("d" "default" plain #'org-roam-capture--get-point "%?" :file-name "permanent/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
-" :unnarrowed t)
-     ("p" "project" plain #'org-roam-capture--get-point "%?" :file-name "project/%<%Y%m%d%H%M%S>-${slug}" :head "#+TITLE: ${title}
-" :unnarrowed t)
-     ("r" "ref" plain #'org-roam-capture--get-point "" :file-name "literature/${slug}" :head "#+TITLE: ${title}
-#+ROAM_KEY: ${ref}
-" :unnarrowed t)) t)
- '(org-roam-completion-system 'ivy t)
- '(org-roam-dailies-capture-templates
-   '(("d" "daily" plain #'org-roam-capture--get-point "" :immediate-finish t :file-name "daily/%<%Y-%m-%d>" :head "#+TITLE: %<%Y-%m-%d>")) t)
- '(org-roam-directory "~/Desktop/roam" t)
- '(package-selected-packages
-   '(org-roam quote
-	      (swiper deft org-roam typescript-mode counsel-jq ido-completing-read+ projectile which-key lsp-ui js-mode jetbrains-darcula-theme lsp-mode json-navigator markdown-mode sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme))))
-(custom-set-faces
- ;; custom-set-faces was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(font-lock-type-face ((t (:inherit nano-face-salient :foreground "#9CCC65"))))
- '(org-document-title ((t (:inherit nano-face-faded :foreground "LightSkyBlue1"))))
- '(org-level-1 ((t (:inherit outline-1))))
- '(org-level-2 ((t (:inherit outline-3))))
- '(org-level-3 ((t (:inherit outline-2)))))
+(setq custom-file (expand-file-name "custom.el" user-emacs-directory))
+(load custom-file)
