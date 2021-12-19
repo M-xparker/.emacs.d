@@ -161,39 +161,43 @@
           (apply 'delete-region remove)
           (insert description)))))
 
+(use-package magit
+  :bind ("C-x g" . magit-status))
+(use-package magit-section)
+
 (use-package org-roam
-      :hook
-      (after-init . org-roam-mode)
-      :custom
-      (org-roam-directory "~/Desktop/roam")
-      (org-roam-completion-system 'ivy)
-      (org-roam-capture-templates
-       '(("d" "default" plain (function org-roam-capture--get-point)
-	  "%?"
-	  :file-name "permanent/%<%Y%m%d%H%M%S>-${slug}"
-	  :head "#+TITLE: ${title}\n"
-	  :unnarrowed t)
-	 ("p" "project" plain (function org-roam-capture--get-point)
-	  "%?"
-	  :file-name "project/%<%Y%m%d%H%M%S>-${slug}"
-	  :head "#+TITLE: ${title}\n"
-	  :unnarrowed t)
-	 ("r" "ref" plain (function org-roam-capture--get-point)
-	  ""
-	  :file-name "literature/${slug}"
-	  :head "#+TITLE: ${title}
-#+ROAM_KEY: ${ref}\n"
-	  :unnarrowed t)))
-      :bind (:map org-roam-mode-map
-		  (("C-c n l" . org-roam)
-		   ("C-c n t" . org-roam-dailies-find-today)
-		   ("C-c n y" . org-roam-dailies-find-yesterday)
-		   ("C-c n f" . org-roam-find-file)
-		   ("C-c n j" . org-roam-jump-to-index)
-		   ("C-c n b" . org-roam-switch-to-buffer)
-		   ("C-c n g" . org-roam-graph))
-              :map org-mode-map
-              (("C-c n i" . org-roam-insert))))
+  :hook
+  (after-init . org-roam-mode)
+  :custom
+  (org-roam-directory "~/Desktop/roam")
+  (org-roam-completion-system 'ivy)
+  (org-roam-dailies-directory "daily/")
+  (org-roam-dailies-capture-templates
+   '(("d" "default" entry
+      "* %?"
+      :target (file+head "%<%Y-%m-%d>.org"
+                         "#+title: %<%Y-%m-%d>\n"))))
+  (org-roam-capture-templates
+   '(("d" "default" plain
+      "%?"
+      :target (file+head "permanent/%<%Y%m%d%H%M%S>-${slug}.org"
+			 "#+TITLE: ${title}\n")
+      :unnarrowed t)
+     ("p" "project" plain 
+      "%?"
+      :target (file+head "project/%<%Y%m%d%H%M%S>-${slug}.org"
+			 "#+TITLE: ${title}\n")
+      :unnarrowed t)
+     ("r" "ref" plain
+      ""
+      :target (file+head "literature/${slug}.org"
+			 "#+TITLE: ${title}\n#+ROAM_KEY: ${ref}\n")
+      :unnarrowed t)))
+  :bind (("C-c n t" . org-roam-dailies-goto-today)
+	 ("C-c n y" . org-roam-dailies-goto-yesterday)
+	 ("C-c n f" . org-roam-node-find)
+	 ("C-c n i" . org-roam-node-insert)
+         :map org-mode-map))
 
 (use-package deft
   :after org
@@ -203,7 +207,18 @@
   (deft-recursive t)
   (deft-use-filter-string-for-filename t)
   (deft-default-extension "org")
-  (deft-directory "~/Desktop/roam"))
+  (deft-directory "~/Desktop/roam")
+  (deft-strip-summary-regexp ":PROPERTIES:\n\\(.+\n\\)+:END:\n")
+  (deft-use-filename-as-title t))
+
+(defun mp/deft-parse-title (file contents)
+  ""
+  (let ((begin (string-match "^#\\+[tT][iI][tT][lL][eE]: .*$" contents)))
+    (if begin
+	(string-trim (substring contents begin (match-end 0)) "#\\+[tT][iI][tT][lL][eE]: *" "[\n\t ]+")
+      (deft-base-filename file))))
+
+(advice-add 'deft-parse-title :override #'mp/deft-parse-title)
 
 (use-package neotree)
 

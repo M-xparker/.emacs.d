@@ -54,13 +54,13 @@
      ("r" "ref" plain #'org-roam-capture--get-point "" :file-name "literature/${slug}" :head "#+TITLE: ${title}
 #+ROAM_KEY: ${ref}
 " :unnarrowed t)))
- '(org-roam-completion-system 'ivy)
+ '(org-roam-completion-system 'ivy t)
  '(org-roam-dailies-capture-templates
    '(("d" "daily" plain #'org-roam-capture--get-point "" :immediate-finish t :file-name "daily/%<%Y-%m-%d>" :head "#+TITLE: %<%Y-%m-%d>")))
  '(org-roam-directory "~/Desktop/roam")
  '(package-selected-packages
-   '(doom-themes hydra swiper ivy counsel ivy-rich doom-modeline undo-tree lsp-ui dash org-roam quote
-		 (swiper deft org-roam typescript-mode counsel-jq projectile which-key lsp-ui js-mode jetbrains-darcula-theme lsp-mode json-navigator markdown-mode sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme)))
+   '(magit magit-section doom-themes hydra swiper ivy counsel ivy-rich doom-modeline undo-tree lsp-ui dash org-roam quote
+	   (swiper deft org-roam typescript-mode counsel-jq projectile which-key lsp-ui js-mode jetbrains-darcula-theme lsp-mode json-navigator markdown-mode sql-indent restclient company aggressive-indent-mode aggressive-indent rainbow-delimiters clojure-mode-extra-font-locking clojure-mode paredit cider use-package transpose-frame smex pipenv org nginx-mode neotree multiple-cursors magit ido-ubiquitous idea-darkula-theme go-mode exec-path-from-shell elpy diminish darcula-theme)))
  '(pdf-view-midnight-colors (cons "#bbc2cf" "#282c34"))
  '(rustic-ansi-faces
    ["#282c34" "#ff6c6b" "#98be65" "#ECBE7B" "#51afef" "#c678dd" "#46D9FF" "#bbc2cf"])
@@ -87,3 +87,9 @@
     (cons 360 "#5B6268")))
  '(vc-annotate-very-old-color nil))
 
+(custom-set-faces
+ ;; custom-set-faces was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
