@@ -6,6 +6,8 @@
 (set-fringe-mode 10)        ; Give some breathing room
 (menu-bar-mode -1)            ; Disable the menu bar
 
+(setq mac-right-command-modifier 'control)
+
 (set-face-attribute 'default nil :font "Fira Code" :height 140)
 (column-number-mode)
 (global-display-line-numbers-mode t)
@@ -30,13 +32,13 @@
 ;; Initialize package sources
 (require 'package)
 
-(setq package-archives '(("melpa" . "http://melpa.org/packages/")
+(setq package-archives '(("melpa" . "https://melpa.org/packages/")
                          ("org" . "https://orgmode.org/elpa/")
                          ("elpa" . "https://elpa.gnu.org/packages/")))
 
 (package-initialize)
 (unless package-archive-contents
- (package-refresh-contents))
+  (package-refresh-contents))
 
 (unless (package-installed-p 'use-package)
   (package-install 'use-package))
@@ -128,28 +130,28 @@
 	     (calc . t)))
   (setq org-startup-folded t)
   (setq org-agenda-files '("~/gtd/inbox.org"
-                         "~/gtd/gtd.org"
-                         "~/gtd/tickler.org"))
+                           "~/gtd/gtd.org"
+                           "~/gtd/tickler.org"))
   (setq org-capture-templates '(("t" "Todo [inbox]" entry
-                               (file+headline "~/gtd/inbox.org" "Tasks")
-                               "* TODO %i%?")
-                              ("T" "Tickler" entry
-                               (file+headline "~/gtd/tickler.org" "Tickler")
-                               "* %i%? \n %U")))
+				 (file+headline "~/gtd/inbox.org" "Tasks")
+				 "* TODO %i%?")
+				("T" "Tickler" entry
+				 (file+headline "~/gtd/tickler.org" "Tickler")
+				 "* %i%? \n %U")))
   (setq org-refile-targets '(("~/gtd/gtd.org" :maxlevel . 3)
 			     ("~/gtd/someday.org" :level . 1)
 			     ("~/gtd/tickler.org" :maxlevel . 2)))
   (setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
   (setq org-agenda-custom-commands 
-      '(("n" "Admin batch" tags-todo "admin"
-         ((org-agenda-overriding-header "Admin")))))
+	'(("n" "Admin batch" tags-todo "admin"
+           ((org-agenda-overriding-header "Admin")))))
   (setq org-deadline-warning-days 30)
   (add-to-list 'org-modules 'org-habit)
   (setq org-load-modules-maybe t)
   (setq org-adapt-indentation nil))
 
 (defun org-replace-link-by-link-description ()
-    "Replace an org link by its description or if empty its address"
+  "Replace an org link by its description or if empty its address"
   (interactive)
   (if (org-in-regexp org-link-bracket-re 1)
       (save-excursion
@@ -193,7 +195,8 @@
       :target (file+head "literature/${slug}.org"
 			 "#+TITLE: ${title}\n#+ROAM_KEY: ${ref}\n")
       :unnarrowed t)))
-  :bind (("C-c n t" . org-roam-dailies-goto-today)
+  :bind (("C-c n l" . org-roam-buffer-toggle)
+	 ("C-c n t" . org-roam-dailies-goto-today)
 	 ("C-c n y" . org-roam-dailies-goto-yesterday)
 	 ("C-c n f" . org-roam-node-find)
 	 ("C-c n i" . org-roam-node-insert)
@@ -226,9 +229,6 @@
 ;;install manually
 (use-package dash)
 
-(use-package magit
-  :bind ("C-x g" . magit-status))
-
 (use-package transpose-frame)
 (use-package exec-path-from-shell
   :if (memq window-system '(mac ns))
@@ -255,8 +255,8 @@
   (setq-default fill-column 80))
 
 (use-package which-key
-    :config
-    (which-key-mode))
+  :config
+  (which-key-mode))
 
 (use-package lsp-mode
   :hook (lsp-mode . lsp-enable-which-key-integration)
@@ -283,6 +283,24 @@
 	(when (projectile-project-p)
 	  (kill-buffer buf))))))
 
+(use-package perspective
+  :bind
+  ("C-x b"   . persp-ivy-switch-buffer)
+  ("C-x C-b" . ibuffer)
+  :config
+  (persp-mode))
+
+(use-package winner
+  :config
+  (winner-mode 1))
+
+(use-package ace-window
+  :bind
+  ("M-o" . ace-window))
+
+(use-package avy
+  :bind ("C-:" . avy-goto-char))
+
 (defun js-font-setup ()
   (face-remap-add-relative 'font-lock-variable-name-face
 			   :foreground "#1481ba")
@@ -299,6 +317,7 @@
   :hook ((js-mode . lsp)
 	 (js-mode . lsp-ui-mode)
 	 (js-mode . disable-tabs)
+	 (js-mode . electric-pair-mode)
 	 (js-mode . js-font-setup)))
 
 (use-package typescript-mode
@@ -307,6 +326,7 @@
   (setq js-chain-indent nil)
   :hook ((typescript-mode . lsp)
 	 (typescript-mode . lsp-ui-mode)
+	 (typescript-mode . electric-pair-mode)
 	 (typescript-mode . disable-tabs)))
 
 (defun js--multi-line-declaration-indentation ()
@@ -350,7 +370,7 @@ statement spanning multiple lines; otherwise, return nil."
 (use-package cider
   
   :bind (("C-c C-o" . (lambda () (interactive)
-			       (cider-find-and-clear-repl-output t))))
+			(cider-find-and-clear-repl-output t))))
   :hook
   (cider-repl-mode . company-mode)
   (cider-mode . company-mode))
@@ -359,7 +379,7 @@ statement spanning multiple lines; otherwise, return nil."
 (use-package clojure-mode
   
   :config (setq clojure-align-forms-automatically t)
-	   (show-paren-mode 1))
+  (show-paren-mode 1))
 
 (use-package aggressive-indent
   :hook ((clojure-mode . aggressive-indent-mode)
