@@ -29,6 +29,12 @@
 (setq mac-right-command-modifier 'control)
 (setq ns-right-command-modifier 'control)
 
+(setq backup-directory-alist '(("." . "~/.config/emacs/backups")))
+(setq delete-old-versions -1)
+(setq version-control t)
+(setq vc-make-backup-files t)
+(setq auto-save-file-name-transforms '((".*" "~/.config/emacs/auto-save-list/" t)))
+
 ;; Initialize package sources
 (require 'package)
 
