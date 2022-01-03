@@ -258,6 +258,12 @@
   :config
   (which-key-mode))
 
+(use-package yasnippet
+  :config (yas-reload-all))
+yas-expand
+
+(use-package yasnippet-snippets)
+
 (use-package lsp-mode
   :hook (lsp-mode . lsp-enable-which-key-integration)
   :config (setq lsp-ui-doc-enable nil)
@@ -286,7 +292,7 @@
 (use-package perspective
   :bind
   ("C-x b"   . persp-ivy-switch-buffer)
-  ("C-x C-b" . ibuffer)
+  ("C-x C-b" . persp-ibuffer)
   :config
   (persp-mode))
 
@@ -327,7 +333,8 @@
   :hook ((typescript-mode . lsp)
 	 (typescript-mode . lsp-ui-mode)
 	 (typescript-mode . electric-pair-mode)
-	 (typescript-mode . disable-tabs)))
+	 (typescript-mode . disable-tabs)
+	 (typescript-mode . yas-minor-mode)))
 
 (defun js--multi-line-declaration-indentation ()
   "Helper function for `js--proper-indentation'.
@@ -400,3 +407,4 @@ statement spanning multiple lines; otherwise, return nil."
 
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file)
+(put 'narrow-to-region 'disabled nil)
