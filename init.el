@@ -172,8 +172,6 @@
 (use-package magit-section)
 
 (use-package org-roam
-  :hook
-  (after-init . org-roam-mode)
   :config
   (org-roam-db-autosync-mode)
   :custom
@@ -209,7 +207,6 @@
          :map org-mode-map))
 
 (use-package deft
-  :after org
   :bind
   ("C-c n d" . deft)
   :custom
