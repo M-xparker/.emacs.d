@@ -63,10 +63,6 @@
   :init (doom-modeline-mode 1)
   :custom ((doom-modeline-height 15)))
 
-(use-package tree-sitter)
-(use-package tree-sitter-langs
-  :config (tree-sitter-require 'javascript))
-
 (use-package company)
 
 (use-package ivy
@@ -170,6 +166,8 @@
 (use-package org-roam
   :hook
   (after-init . org-roam-mode)
+  :config
+  (org-roam-db-autosync-mode)
   :custom
   (org-roam-directory "~/Desktop/roam")
   (org-roam-completion-system 'ivy)
@@ -260,7 +258,6 @@
 
 (use-package yasnippet
   :config (yas-reload-all))
-yas-expand
 
 (use-package yasnippet-snippets)
 
