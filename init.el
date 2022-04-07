@@ -131,7 +131,9 @@
 	     (python     . t)
 	     (dot        . t)
 	     (css        . t)
-	     (calc . t)))
+	     (sql . t)
+	     (calc . t)
+	     (restclient . t)))
   (setq org-startup-folded t)
   (setq org-agenda-files '("~/gtd/inbox.org"
                            "~/gtd/gtd.org"
