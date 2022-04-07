@@ -33,7 +33,9 @@
 (setq delete-old-versions -1)
 (setq version-control t)
 (setq vc-make-backup-files t)
-(setq auto-save-file-name-transforms '((".*" "~/.config/emacs/auto-save-list/" t)))
+(setq auto-save-file-name-transforms
+  (cons `(,(car (car auto-save-file-name-transforms)) 
+          ,(concat "~/.config/emacs/auto-save-list" "\\2") t) auto-save-file-name-transforms))
 
 ;; Initialize package sources
 (require 'package)
