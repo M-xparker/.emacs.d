@@ -393,8 +393,7 @@ statement spanning multiple lines; otherwise, return nil."
   (show-paren-mode 1))
 
 (use-package aggressive-indent
-  :hook ((clojure-mode . aggressive-indent-mode)
-	 (js-mode . aggresive-indent-mode)))
+  :hook ((clojure-mode . aggressive-indent-mode)))
 
 (use-package clojure-mode-extra-font-locking)
 
@@ -412,3 +411,4 @@ statement spanning multiple lines; otherwise, return nil."
 (setq custom-file (expand-file-name "custom.el" user-emacs-directory))
 (load custom-file)
 (put 'narrow-to-region 'disabled nil)
+(put 'erase-buffer 'disabled nil)
