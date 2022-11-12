@@ -372,6 +372,10 @@ statement spanning multiple lines; otherwise, return nil."
           (goto-char (match-beginning 0))
           (+ js-indent-level (current-column)))))))
 
+(use-package zig-mode
+  :config (setq lsp-zig-zls-executable "~/zls/zls")
+  :hook ((zig-mode . lsp)))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
