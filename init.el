@@ -6,10 +6,9 @@
 (set-fringe-mode 10)        ; Give some breathing room
 (menu-bar-mode -1)            ; Disable the menu bar
 
-(setq mac-right-command-modifier 'control)
-
 (set-face-attribute 'default nil :font "Fira Code" :height 140)
-(column-number-mode)
+(column-number-mode 0)
+(line-number-mode 0)
 (global-display-line-numbers-mode t)
 
 (defun any-horizontal-splits-p ()
@@ -34,8 +33,10 @@
 (setq version-control t)
 (setq vc-make-backup-files t)
 (setq auto-save-file-name-transforms
-  (cons `(,(car (car auto-save-file-name-transforms)) 
+  (cons `(,(car (car auto-save-file-name-transforms))
           ,(concat "~/.config/emacs/auto-save-list" "\\2") t) auto-save-file-name-transforms))
+
+(setq dired-dwim-target t)
 
 ;; Initialize package sources
 (require 'package)
@@ -60,18 +61,43 @@
 (defalias 'yes-or-no-p 'y-or-n-p)
 (setq dired-omit-files "^\\.$|~$")
 
+(setq treesit-language-source-alist
+   '((bash "https://github.com/tree-sitter/tree-sitter-bash")
+     (cmake "https://github.com/uyha/tree-sitter-cmake")
+     (css "https://github.com/tree-sitter/tree-sitter-css")
+     (elisp "https://github.com/Wilfred/tree-sitter-elisp")
+     (go "https://github.com/tree-sitter/tree-sitter-go")
+     (html "https://github.com/tree-sitter/tree-sitter-html")
+     (javascript "https://github.com/tree-sitter/tree-sitter-javascript" "master" "src")
+     (json "https://github.com/tree-sitter/tree-sitter-json")
+     (make "https://github.com/alemuller/tree-sitter-make")
+     (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+     (python "https://github.com/tree-sitter/tree-sitter-python")
+     (toml "https://github.com/tree-sitter/tree-sitter-toml")
+     (tsx "https://github.com/tree-sitter/tree-sitter-typescript" "master" "tsx/src")
+     (typescript "https://github.com/tree-sitter/tree-sitter-typescript" "master" "typescript/src")
+     (yaml "https://github.com/ikatyang/tree-sitter-yaml")))
+
 (use-package doom-themes
   :init (load-theme 'doom-one t)
   :config
-  (setq doom-themes-enable-bold t    
+  (setq doom-themes-enable-bold t
         doom-themes-enable-italic t)
   (doom-themes-org-config))
 
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
-
-(use-package company)
+  :custom
+  (doom-modeline-height 15)
+  (doom-modeline-persp-name nil)
+  (doom-modeline-icon nil)
+  (doom-modeline-lsp nil)
+  (doom-modeline-buffer-encoding nil)
+  (vc-display-status nil))
+(setq doom-modeline-persp-name nil)
+(use-package company
+  :config
+  (setq completion-ignore-case  t))
 
 (use-package ivy
   :diminish
@@ -148,7 +174,7 @@
 			     ("~/gtd/someday.org" :level . 1)
 			     ("~/gtd/tickler.org" :maxlevel . 2)))
   (setq org-todo-keywords '((sequence "TODO(t)" "WAITING(w)" "|" "DONE(d)" "CANCELLED(c)")))
-  (setq org-agenda-custom-commands 
+  (setq org-agenda-custom-commands
 	'(("n" "Admin batch" tags-todo "admin"
            ((org-agenda-overriding-header "Admin")))))
   (setq org-deadline-warning-days 30)
@@ -165,7 +191,7 @@
       (save-excursion
         (let ((remove (list (match-beginning 0) (match-end 0)))
               (description
-               (if (match-end 2) 
+               (if (match-end 2)
                    (org-match-string-no-properties 2)
                  (org-match-string-no-properties 1))))
           (apply 'delete-region remove)
@@ -188,7 +214,7 @@
       :target (file+head "permanent/%<%Y%m%d%H%M%S>-${slug}.org"
 			 "#+TITLE: ${title}\n")
       :unnarrowed t)
-     ("p" "project" plain 
+     ("p" "project" plain
       "%?"
       :target (file+head "project/%<%Y%m%d%H%M%S>-${slug}.org"
 			 "#+TITLE: ${title}\n")
@@ -225,8 +251,6 @@
 
 (advice-add 'deft-parse-title :override #'mp/deft-parse-title)
 
-(use-package neotree)
-
 ;;something's not working with this
 ;;install manually
 (use-package dash)
@@ -261,16 +285,11 @@
   (which-key-mode))
 
 (use-package yasnippet
-  :config (yas-reload-all))
+  :config (yas-global-mode 1)
+	   (yas-reload-all))
 
 (use-package yasnippet-snippets)
 
-(use-package lsp-mode
-  :hook (lsp-mode . lsp-enable-which-key-integration)
-  :config (setq lsp-ui-doc-enable nil)
-  :commands lsp)
-
-(use-package lsp-ui)
 (use-package projectile
   :init
   (projectile-mode +1)
@@ -291,6 +310,7 @@
 	  (kill-buffer buf))))))
 
 (use-package perspective
+  :demand t
   :bind
   ("C-x b"   . persp-ivy-switch-buffer)
   ("C-x C-b" . persp-ibuffer)
@@ -321,66 +341,34 @@
   (setq js-indent-level 2)
   (setq js-switch-indent-offset 2)
   (setq js-chain-indent 't)
-  :hook ((js-mode . lsp)
-	 (js-mode . lsp-ui-mode)
+  :hook ((js-mode . eglot-ensure)
 	 (js-mode . disable-tabs)
 	 (js-mode . electric-pair-mode)
 	 (js-mode . js-font-setup)))
 
-(use-package typescript-mode
+(use-package typescript-ts-mode
+  :mode (("\\.ts\\'" . typescript-ts-mode) ("\\.tsx\\'" . tsx-ts-mode))
   :config
   (setq typescript-indent-level 2)
   (setq js-chain-indent nil)
-  :hook ((typescript-mode . lsp)
-	 (typescript-mode . lsp-ui-mode)
-	 (typescript-mode . electric-pair-mode)
-	 (typescript-mode . disable-tabs)
-	 (typescript-mode . yas-minor-mode)))
-
-(defun js--multi-line-declaration-indentation ()
-  "Helper function for `js--proper-indentation'.
-Return the proper indentation of the current line if it belongs to a declaration
-statement spanning multiple lines; otherwise, return nil."
-  (let (forward-sexp-function ; Use Lisp version.
-        at-opening-bracket)
-    (save-excursion
-      (back-to-indentation)
-      (when (not (looking-at js--declaration-keyword-re))
-        (let ((pt (point)))
-          (when (looking-at js--indent-operator-re)
-            (goto-char (match-end 0)))
-          ;; The "operator" is probably a regexp literal opener.
-          (when (nth 3 (syntax-ppss))
-            (goto-char pt)))
-        (while (and (not at-opening-bracket)
-                    (not (bobp))
-                    (let ((pos (point)))
-                      (save-excursion
-                        (js--backward-syntactic-ws)
-                        (or (eq (char-before) ?,)
-                            (and (not (eq (char-before) ?\;))
-                                 (prog2
-                                     (skip-syntax-backward ".")
-                                     (looking-at js--indent-operator-re)
-                                   (js--backward-syntactic-ws))
-                                 (not (eq (char-before) ?\;)))
-                            (js--same-line pos)))))
-          (condition-case nil
-              (backward-sexp)
-            (scan-error (setq at-opening-bracket t))))
-        (when (looking-at js--declaration-keyword-re)
-          (goto-char (match-beginning 0))
-          (+ js-indent-level (current-column)))))))
+  :hook
+  ((typescript-ts-mode . eglot-ensure)
+   (tsx-ts-mode . eglot-ensure)
+   (typescript-ts-mode . company-mode)
+   (tsx-ts-mode . company-mode))
+  :custom-face
+  (eglot-diagnostic-tag-unnecessary-face ((t (:underline (:color "yellow green" :style wave))))))
 
 (use-package zig-mode
-  :config (setq lsp-zig-zls-executable "~/zls/zls")
+  :config
+  (setq lsp-zig-zls-executable "zls")
   :hook ((zig-mode . lsp)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; Clojure
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 (use-package cider
-  
+
   :bind (("C-c C-o" . (lambda () (interactive)
 			(cider-find-and-clear-repl-output t))))
   :hook
@@ -389,7 +377,7 @@ statement spanning multiple lines; otherwise, return nil."
 (use-package paredit)
 
 (use-package clojure-mode
-  
+
   :config (setq clojure-align-forms-automatically t)
   (show-paren-mode 1))
 
@@ -413,3 +401,5 @@ statement spanning multiple lines; otherwise, return nil."
 (load custom-file)
 (put 'narrow-to-region 'disabled nil)
 (put 'erase-buffer 'disabled nil)
+(put 'downcase-region 'disabled nil)
+(put 'upcase-region 'disabled nil)
